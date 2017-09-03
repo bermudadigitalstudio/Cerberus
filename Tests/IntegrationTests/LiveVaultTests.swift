@@ -71,6 +71,15 @@ final class LiveVaultHTTPIntegrationTests: QuickSpec {
             try theVaultClient.listPolicies()
           }.to(equal(["root"]))
         }
+        it("can store and retrieve secrets") {
+          let secret = ["some_private_secret": UUID().uuidString]
+          expect {
+            try theVaultClient.store(secret, atPath: "/foo/bar/cerberus/private")
+            }.toNot(throwError())
+          expect {
+            try theVaultClient.secret(atPath: "/foo/bar/cerberus/private")
+            }.to(equal(secret))
+        }
       }
       context("given a limited scope token with only default policy") {
         beforeEach {
@@ -81,13 +90,12 @@ final class LiveVaultHTTPIntegrationTests: QuickSpec {
             try theVaultClient.listPolicies()
           }.to(equal(["default"]))
         }
-        xit("can renew a token") {
-          XCTFail()
-        }
-        xit("can retrieve permissible secrets") {
-          XCTFail()
-        }
+
         xit("returns an error when attempting to retrieve impermissible secrets") {
+          XCTFail()
+        }
+
+        xit("can renew a token") {
           XCTFail()
         }
       }

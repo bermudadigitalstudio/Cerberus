@@ -41,3 +41,24 @@ public final class VaultClient {
     return policies
   }
 }
+
+/// Interface to Generic
+extension VaultClient {
+  public func store(_ secret: [String:String], atPath path: String) throws {
+    guard let t = token else {
+      throw VaultCommunicationError.notAuthorized
+    }
+    try Secret.Generic.store(vaultAuthority: vaultAuthority, token: t, secret: secret, path: path)
+  }
+
+  public func secret(atPath path: String) throws -> [String:String] {
+    guard let t = token else {
+      throw VaultCommunicationError.notAuthorized
+    }
+    let dict = try Secret.Generic.read(vaultAuthority: vaultAuthority, token: t, path: path)
+    guard let data = dict["data"] as? [String:String] else {
+      throw VaultCommunicationError.parseError
+    }
+    return data
+  }
+}
