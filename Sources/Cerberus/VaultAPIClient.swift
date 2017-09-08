@@ -55,8 +55,8 @@ private func fetchJSON(_ url: URL, token: String? = nil) throws -> Any {
     throw VaultCommunicationError.timedOut
   }
   switch result {
-  case .right:
-    throw VaultCommunicationError.connectionError
+  case .right(let e):
+    throw VaultCommunicationError.connectionError(e)
   case .left(let r):
     return r
   }
@@ -76,8 +76,8 @@ private func postJSON(_ url: URL, json: Any, token: String? = nil) throws {
     throw VaultCommunicationError.timedOut
   }
   switch result {
-  case .right:
-    throw VaultCommunicationError.connectionError
+  case .right(let e):
+    throw VaultCommunicationError.connectionError(e)
   case .left:
     return
   }

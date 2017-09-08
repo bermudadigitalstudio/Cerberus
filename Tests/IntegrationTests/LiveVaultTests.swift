@@ -4,19 +4,16 @@ import Quick
 import Nimble
 
 let env = ProcessInfo.processInfo.environment
-let RootToken: String = {
-  guard let t = env["ROOT_TOKEN"] else {
-    fatalError("Supply a `ROOT_TOKEN` env var with a root token to the Vault under test")
-  }
-  return t
-}()
 
-let PeriodicToken: String = {
-  guard let t = env["PERIODIC_TOKEN"] else {
-    fatalError("Supply a `PERIODIC_TOKEN` env var with a root token to the Vault under test")
+func envOrFail(_ key: String) -> String {
+  guard let t = env[key] else {
+    fatalError("Supply a \(key) env var with to the Vault under test")
   }
   return t
-}()
+}
+let RootToken = envOrFail("ROOT_TOKEN")
+let PeriodicToken: String = envOrFail("PERIODIC_TOKEN")
+let AccessibleSecretPath: String = envOrFail("ACCESSIBLE_SECRET_PATH")
 
 func tryIt(_ description: String, file: String = #file, line: UInt = #line, closure: @escaping () throws -> Swift.Void) {
   return it(description, file: file, line: line, closure: {
@@ -99,7 +96,7 @@ final class LiveVaultHTTPIntegrationTests: QuickSpec {
         it("can list policies attached to the token") {
           expect {
             try theVaultClient.listPolicies()
-          }.to(equal(["default"]))
+          }.to(contain("default"))
         }
 
         it("can discover the ttl date of the token") {
@@ -117,8 +114,18 @@ final class LiveVaultHTTPIntegrationTests: QuickSpec {
           }.to(beGreaterThan(oldTTL))
         }
 
-        xit("returns an error when attempting to retrieve impermissible secrets") {
-          XCTFail()
+        it("returns an error when attempting to retrieve impermissible secrets") {
+          expect {
+            try theVaultClient.secret(atPath: "/foo/bar/cerberus/private")
+          }.to(throwError())
+        }
+        it("can retrieve a permissible secret") {
+          expect {
+            try theVaultClient.secret(atPath: AccessibleSecretPath)
+          }.toNot(throwError())
+          expect {
+            try theVaultClient.secret(atPath: AccessibleSecretPath).keys
+          }.to(contain("secret"))
         }
       }
       context("given a bad token") {

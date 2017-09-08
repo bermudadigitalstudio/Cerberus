@@ -1,7 +1,7 @@
 import Foundation
 import ServerKit
 public enum VaultCommunicationError: Error {
-  case connectionError
+  case connectionError(Error)
   case timedOut
   case parseError
   case notAuthorized
