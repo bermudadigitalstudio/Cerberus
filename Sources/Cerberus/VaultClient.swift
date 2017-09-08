@@ -5,6 +5,7 @@ public enum VaultCommunicationError: Error {
   case timedOut
   case parseError
   case notAuthorized
+  case tokenNotSet
 }
 public final class VaultClient {
   let vaultAuthority: URL
@@ -19,46 +20,61 @@ public final class VaultClient {
     let sealed = dict["sealed"] as! Bool
     return (sealed, true)
   }
+}
 
+/// Inspecting the currently set token
+extension VaultClient {
   public func checkToken() throws {
-    guard let t = token else {
-      throw VaultCommunicationError.notAuthorized
-    }
-    _ = try Auth.Token.lookupSelf(vaultAuthority: vaultAuthority, token: t)
+    _ = try lookupSelfTokenData()
   }
 
-  public func listPolicies() throws -> [String] {
-    guard let t = token else {
-      throw VaultCommunicationError.notAuthorized
+  public func tokenTTL() throws -> Int {
+    let data = try lookupSelfTokenData()
+    guard let ttl = data["ttl"] as? Int else {
+      throw VaultCommunicationError.parseError
     }
-    let d = try Auth.Token.lookupSelf(vaultAuthority: vaultAuthority, token: t)
+    return ttl
+  }
+
+  private func lookupSelfTokenData() throws -> [String:Any] {
+    let d = try Auth.Token.lookupSelf(vaultAuthority: vaultAuthority, token: getToken())
     guard let data = d["data"] as? [String:Any] else {
       throw VaultCommunicationError.parseError
     }
+    return data
+  }
+
+  public func listPolicies() throws -> [String] {
+    let data = try lookupSelfTokenData()
     guard let policies = data["policies"] as? [String] else {
       throw VaultCommunicationError.parseError
     }
     return policies
+  }
+
+  public func renewToken() throws {
+    try Auth.Token.renewSelf(vaultAuthority: vaultAuthority, token: getToken())
   }
 }
 
 /// Interface to Generic
 extension VaultClient {
   public func store(_ secret: [String:String], atPath path: String) throws {
-    guard let t = token else {
-      throw VaultCommunicationError.notAuthorized
-    }
-    try Secret.Generic.store(vaultAuthority: vaultAuthority, token: t, secret: secret, path: path)
+    try Secret.Generic.store(vaultAuthority: vaultAuthority, token: getToken(), secret: secret, path: path)
   }
 
   public func secret(atPath path: String) throws -> [String:String] {
-    guard let t = token else {
-      throw VaultCommunicationError.notAuthorized
-    }
-    let dict = try Secret.Generic.read(vaultAuthority: vaultAuthority, token: t, path: path)
+    let dict = try Secret.Generic.read(vaultAuthority: vaultAuthority, token: getToken(), path: path)
     guard let data = dict["data"] as? [String:String] else {
       throw VaultCommunicationError.parseError
     }
     return data
+  }
+}
+
+private extension VaultClient {
+  func getToken() throws -> String {
+    guard let t = token else { throw VaultCommunicationError.tokenNotSet }
+    return t
   }
 }

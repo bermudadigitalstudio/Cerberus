@@ -11,12 +11,23 @@ let RootToken: String = {
   return t
 }()
 
-let LimitedToken: String = {
-  guard let t = env["LIMITED_TOKEN"] else {
-    fatalError("Supply a `LIMITED_TOKEN` env var with a root token to the Vault under test")
+let PeriodicToken: String = {
+  guard let t = env["PERIODIC_TOKEN"] else {
+    fatalError("Supply a `PERIODIC_TOKEN` env var with a root token to the Vault under test")
   }
   return t
 }()
+
+func tryIt(_ description: String, file: String = #file, line: UInt = #line, closure: @escaping () throws -> Swift.Void) {
+  return it(description, file: file, line: line, closure: {
+    do {
+      try closure()
+    } catch {
+      XCTFail("Caught thrown error \(error)")
+    }
+  })
+}
+
 
 final class LiveVaultHTTPIntegrationTests: QuickSpec {
   override func spec() {
@@ -75,15 +86,15 @@ final class LiveVaultHTTPIntegrationTests: QuickSpec {
           let secret = ["some_private_secret": UUID().uuidString]
           expect {
             try theVaultClient.store(secret, atPath: "/foo/bar/cerberus/private")
-            }.toNot(throwError())
+          }.toNot(throwError())
           expect {
             try theVaultClient.secret(atPath: "/foo/bar/cerberus/private")
-            }.to(equal(secret))
+          }.to(equal(secret))
         }
       }
-      context("given a limited scope token with only default policy") {
+      context("given a periodic token with limited permissions") {
         beforeEach {
-          theVaultClient.token = LimitedToken
+          theVaultClient.token = PeriodicToken
         }
         it("can list policies attached to the token") {
           expect {
@@ -91,11 +102,22 @@ final class LiveVaultHTTPIntegrationTests: QuickSpec {
           }.to(equal(["default"]))
         }
 
-        xit("returns an error when attempting to retrieve impermissible secrets") {
-          XCTFail()
+        it("can discover the ttl date of the token") {
+          expect {
+            try theVaultClient.tokenTTL()
+          }.to(beGreaterThan(0)) // i.e. not infinite
         }
 
-        xit("can renew a token") {
+        tryIt("can renew the token") {
+          let oldTTL = try theVaultClient.tokenTTL()
+          sleep(1)
+          try theVaultClient.renewToken() // expect token to now have a longer TTL than before
+          expect {
+            try theVaultClient.tokenTTL()
+          }.to(beGreaterThan(oldTTL))
+        }
+
+        xit("returns an error when attempting to retrieve impermissible secrets") {
           XCTFail()
         }
       }

@@ -19,6 +19,12 @@ struct Auth {
       }
       return r
     }
+
+    static func renewSelf(vaultAuthority: URL, token: String) throws {
+      let renewSelf = vaultAuthority.appendingPathComponent("/v1/auth/token/renew-self")
+      try postJSON(renewSelf, json: [:], token: token)
+      return
+    }
   }
 }
 
