@@ -11,6 +11,7 @@ public final class VaultClient {
   let vaultAuthority: URL
   let session = URLSession(configuration: .default)
   public var token: String? = nil
+
   public init(vaultAuthority: URL = URL(string: "http://localhost:8200")!) {
     self.vaultAuthority = vaultAuthority
   }
@@ -69,6 +70,16 @@ extension VaultClient {
       throw VaultCommunicationError.parseError
     }
     return data
+  }
+}
+
+extension VaultClient {
+  public func authenticate(roleID: String, secretID: String? = nil) throws {
+    let dict = try Auth.AppRole.login(vaultAuthority: vaultAuthority, roleID: roleID, secretID: secretID)
+    guard let auth = dict["auth"] as? [String:Any], let token = auth["client_token"] as? String else {
+      throw VaultCommunicationError.parseError
+    }
+    self.token = token
   }
 }
 

@@ -15,6 +15,9 @@ let RootToken = envOrFail("ROOT_TOKEN")
 let PeriodicToken: String = envOrFail("PERIODIC_TOKEN")
 let AccessibleSecretPath: String = envOrFail("ACCESSIBLE_SECRET_PATH")
 
+let RoleID = envOrFail("ROLE_ID")
+let SecretID = envOrFail("SECRET_ID")
+
 func tryIt(_ description: String, file: String = #file, line: UInt = #line, closure: @escaping () throws -> Swift.Void) {
   return it(description, file: file, line: line, closure: {
     do {
@@ -123,6 +126,21 @@ final class LiveVaultHTTPIntegrationTests: QuickSpec {
           expect {
             try theVaultClient.secret(atPath: AccessibleSecretPath)
           }.toNot(throwError())
+          expect {
+            try theVaultClient.secret(atPath: AccessibleSecretPath).keys
+          }.to(contain("secret"))
+        }
+      }
+      context("authenticating with a role ID and secret ID") {
+        beforeEach {
+          expect {
+            try theVaultClient.authenticate(roleID: RoleID, secretID: SecretID)
+          }.toNot(throwError())
+        }
+        it("can authenticate and retrieve a token") {
+          expect(theVaultClient.token).toNot(beNil())
+        }
+        it("can retreive the special secret") {
           expect {
             try theVaultClient.secret(atPath: AccessibleSecretPath).keys
           }.to(contain("secret"))

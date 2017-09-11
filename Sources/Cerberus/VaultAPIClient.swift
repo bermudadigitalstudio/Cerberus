@@ -26,6 +26,21 @@ struct Auth {
       return
     }
   }
+  struct AppRole {
+    static func login(vaultAuthority: URL, roleID: String, secretID: String? = nil, backendMountPoint: String = "/auth/approle") throws -> [String:Any] {
+      let login = vaultAuthority.appendingPathComponent("/v1").appendingPathComponent(backendMountPoint).appendingPathComponent("/login")
+      var payload = [
+        "role_id": roleID
+      ]
+      if let s = secretID {
+        payload["secret_id"] = s
+      }
+      guard let json = try postAndReceiveJSON(login, json: payload) as? [String:Any] else {
+        throw VaultCommunicationError.parseError
+      }
+      return json
+    }
+  }
 }
 
 struct Secret {
@@ -80,6 +95,27 @@ private func postJSON(_ url: URL, json: Any, token: String? = nil) throws {
     throw VaultCommunicationError.connectionError(e)
   case .left:
     return
+  }
+}
+
+private func postAndReceiveJSON(_ url: URL, json: Any, token: String? = nil) throws -> Any {
+  var request = requestForURL(url, token: token)
+  request.httpMethod = "POST"
+  request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+  let data = try JSONSerialization.data(withJSONObject: json, options: [])
+  let x: SyncResult<Either<Any, Error>> = synchronize { completion in
+    session.uploadTask(with: request, from: data, completionHandler: { (data, resp, err) in
+      completion(validateResponseIs2xxWithJSON(data: data, resp: resp, err: err))
+    }).resume()
+  }
+  guard case .success(let result) = x else {
+    throw VaultCommunicationError.timedOut
+  }
+  switch result {
+  case .right(let e):
+    throw VaultCommunicationError.connectionError(e)
+  case .left(let l):
+    return l
   }
 }
 
