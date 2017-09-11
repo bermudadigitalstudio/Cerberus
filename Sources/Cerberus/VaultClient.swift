@@ -73,6 +73,7 @@ extension VaultClient {
   }
 }
 
+/// Interface to AppRole
 extension VaultClient {
   public func authenticate(roleID: String, secretID: String? = nil) throws {
     let dict = try Auth.AppRole.login(vaultAuthority: vaultAuthority, roleID: roleID, secretID: secretID)
