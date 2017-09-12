@@ -10,9 +10,9 @@ A Vault client in Swift (for Linux, obviously).
 1. Retrieve secret given unwrapped token (get generic secret)
 1. Renew token (extend lease)
 1. Get a token from an unwrapped `secret_id` and `role_id` (AppRole auth).
+1. Automatic periodic token renewal
 
 ## Roadmap
-1. Automatic token renewal
 1. Unwrapping secrets
 1. Custom TLS support
 

@@ -1,15 +1,19 @@
 import Foundation
 import ServerKit
+import Dispatch
+
 public enum VaultCommunicationError: Error {
   case connectionError(Error)
   case timedOut
   case parseError
   case notAuthorized
   case tokenNotSet
+  case nonPeriodicToken
 }
+
 public final class VaultClient {
-  let vaultAuthority: URL
-  let session = URLSession(configuration: .default)
+  public let vaultAuthority: URL
+  private let session = URLSession(configuration: .default)
   public var token: String? = nil
 
   public init(vaultAuthority: URL = URL(string: "http://localhost:8200")!) {
@@ -20,6 +24,23 @@ public final class VaultClient {
     let dict = try Sys.health(vaultAuthority: vaultAuthority)
     let sealed = dict["sealed"] as! Bool
     return (sealed, true)
+  }
+
+  /// Configures automatic renewal
+  public func enableAutoRenew() throws {
+    let tokenData = try lookupSelfTokenData()
+    guard let period = tokenData["period"] as? Int else {
+      throw VaultCommunicationError.nonPeriodicToken
+    }
+    let time = DispatchTime.now() + .seconds(period/2)
+    DispatchQueue.main.asyncAfter(deadline: time) {
+      do {
+        try self.renewToken()
+        try self.enableAutoRenew()
+      } catch {
+        print("Got error: \(error)")
+      }
+    }
   }
 }
 
@@ -37,7 +58,7 @@ extension VaultClient {
     return ttl
   }
 
-  private func lookupSelfTokenData() throws -> [String:Any] {
+  fileprivate func lookupSelfTokenData() throws -> [String:Any] {
     let d = try Auth.Token.lookupSelf(vaultAuthority: vaultAuthority, token: getToken())
     guard let data = d["data"] as? [String:Any] else {
       throw VaultCommunicationError.parseError

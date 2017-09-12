@@ -3,6 +3,8 @@ import XCTest
 
 #if os(Linux)
 QCKMain([
-  LiveVaultHTTPIntegrationTests.self
+  LiveVaultHTTPIntegrationTests.self,
+  KubernetesVaultTests.self,
+  AutoRenewalTests.self
 ])
 #endif

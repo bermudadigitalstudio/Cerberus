@@ -122,6 +122,7 @@ final class LiveVaultHTTPIntegrationTests: QuickSpec {
             try theVaultClient.secret(atPath: "/foo/bar/cerberus/private")
           }.to(throwError())
         }
+
         it("can retrieve a permissible secret") {
           expect {
             try theVaultClient.secret(atPath: AccessibleSecretPath)
