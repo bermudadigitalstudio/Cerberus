@@ -17,6 +17,7 @@ extension VaultClient {
     }
     let client = VaultClient(vaultAuthority: url)
     client.token = token
+    try client.enableAutoRenew()
     return client
   }
 }
