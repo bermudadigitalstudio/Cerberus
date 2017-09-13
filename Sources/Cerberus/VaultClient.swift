@@ -8,7 +8,7 @@ public enum VaultCommunicationError: Error {
   case parseError
   case notAuthorized
   case tokenNotSet
-  case nonPeriodicToken
+  case nonRenewableToken
 }
 
 public final class VaultClient {
@@ -29,10 +29,10 @@ public final class VaultClient {
   /// Configures automatic renewal
   public func enableAutoRenew() throws {
     let tokenData = try lookupSelfTokenData()
-    guard let period = tokenData["period"] as? Int else {
-      throw VaultCommunicationError.nonPeriodicToken
+    guard let ttl = tokenData["ttl"] as? Int, let renewable = tokenData["renewable"] as? Bool, renewable else {
+      throw VaultCommunicationError.nonRenewableToken
     }
-    let time = DispatchTime.now() + .seconds(period/2)
+    let time = DispatchTime.now() + .seconds(ttl/2)
     DispatchQueue.main.asyncAfter(deadline: time) {
       do {
         try self.renewToken()
