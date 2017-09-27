@@ -15,6 +15,7 @@ public final class VaultClient {
   public let vaultAuthority: URL
   private let session = URLSession(configuration: .default)
   public var token: String? = nil
+    public var renewalManager: RenewalManager? = nil
 
   public init(vaultAuthority: URL = URL(string: "http://localhost:8200")!) {
     self.vaultAuthority = vaultAuthority
@@ -28,19 +29,8 @@ public final class VaultClient {
 
   /// Configures automatic renewal
   public func enableAutoRenew() throws {
-    let tokenData = try lookupSelfTokenData()
-    guard let ttl = tokenData["ttl"] as? Int, let renewable = tokenData["renewable"] as? Bool, renewable else {
-      throw VaultCommunicationError.nonRenewableToken
-    }
-    let time = DispatchTime.now() + .seconds(ttl/2)
-    DispatchQueue.main.asyncAfter(deadline: time) {
-      do {
-        try self.renewToken()
-        try self.enableAutoRenew()
-      } catch {
-        print("Got error: \(error)")
-      }
-    }
+    self.renewalManager = RenewalManager(vaultClient: self)
+    try self.renewalManager!.beginRenewal()
   }
 }
 
@@ -58,7 +48,7 @@ extension VaultClient {
     return ttl
   }
 
-  fileprivate func lookupSelfTokenData() throws -> [String:Any] {
+  public func lookupSelfTokenData() throws -> [String:Any] {
     let d = try Auth.Token.lookupSelf(vaultAuthority: vaultAuthority, token: getToken())
     guard let data = d["data"] as? [String:Any] else {
       throw VaultCommunicationError.parseError
@@ -125,3 +115,5 @@ private extension VaultClient {
     return t
   }
 }
+
+extension VaultClient: VaultClientTokenRenewable {}
