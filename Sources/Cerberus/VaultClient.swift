@@ -105,6 +105,20 @@ extension VaultClient {
   }
 }
 
+/// Interface to Database
+extension VaultClient {
+    public func databaseCredentials(forRole databaseRole: String) throws -> (username: String, password: String) {
+        let dict = try Secret.Database.credentials(vaultAuthority: vaultAuthority, token: getToken(), role: databaseRole)
+        guard let data = dict["data"] as? [String:String],
+            let password = data["password"],
+            let username = data["username"] else {
+            throw VaultCommunicationError.parseError
+        }
+
+        return (username, password)
+    }
+}
+
 private extension VaultClient {
   func getToken() throws -> String {
     guard let t = token else { throw VaultCommunicationError.tokenNotSet }

@@ -44,6 +44,15 @@ struct Auth {
 }
 
 struct Secret {
+    struct Database {
+        static func credentials(vaultAuthority: URL, token: String, role: String, backendMountPoint: String = "/database") throws -> [String:Any] {
+            let read = vaultAuthority.appendingPathComponent("/v1").appendingPathComponent(backendMountPoint).appendingPathComponent("/creds/").appendingPathComponent(role)
+            guard let dict = try fetchJSON(read, token: token) as? [String:Any] else {
+                throw VaultCommunicationError.parseError
+            }
+            return dict
+        }
+    }
   struct Generic {
     static func store(vaultAuthority: URL, token: String, secret: [String:String], path: String, backendMountPoint: String = "/secret") throws {
       let store = vaultAuthority.appendingPathComponent("/v1").appendingPathComponent(backendMountPoint).appendingPathComponent(path)
