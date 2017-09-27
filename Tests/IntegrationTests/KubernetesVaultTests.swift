@@ -16,7 +16,7 @@ final class KubernetesVaultTests: QuickSpec {
       context("with a vault-token file") {
         var theVaultClient: VaultClient!
         beforeEach {
-          let vaultTokenContents = "{\n   \"clientToken\":\"91526d9b-4850-3405-02a8-aa29e74e17a5\",\n   \"accessor\":\"476ea048-ded5-4d07-eeea-938c6b4e43ec\",\n   \"leaseDuration\":3600,\n   \"renewable\":true,\n   \"vaultAddr\":\"https://vault:8200\"\n}\n"
+            let vaultTokenContents = "{\n   \"clientToken\":\"\(PeriodicToken)\",\n   \"accessor\":\"SOME RANDOM ACCESSOR\",\n   \"leaseDuration\":3600,\n   \"renewable\":true,\n   \"vaultAddr\":\"http://localhost:8200\"\n}\n"
           expect {
             try vaultTokenContents.write(toFile: credPath + "/vault-token", atomically: true, encoding: .utf8)
           }.toNot(throwError())
@@ -27,7 +27,7 @@ final class KubernetesVaultTests: QuickSpec {
         it("can initialize a vault client") {
           expect(theVaultClient).toNot(beNil())
           expect(theVaultClient?.token).toNot(beNil())
-          expect(theVaultClient?.vaultAuthority).to(equal(URL(string: "https://vault:8200")!))
+          expect(theVaultClient?.vaultAuthority).to(equal(URL(string: "http://localhost:8200")!))
         }
       }
     }
