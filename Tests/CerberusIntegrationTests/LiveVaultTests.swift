@@ -29,7 +29,7 @@ func tryIt(_ description: String, file: String = #file, line: UInt = #line, clos
 }
 
 
-final class LiveVaultHTTPIntegrationTests: QuickSpec {
+final class LiveVaultHTTPCerberusIntegrationTests: QuickSpec {
   override func spec() {
     describe("initializing cerberus to an unreachable vault") {
       var theVaultClient: VaultClient! = nil
