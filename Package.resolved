@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "ServerKit",
+        "repositoryURL": "https://github.com/bermudadigitalstudio/ServerKit.git",
+        "state": {
+          "branch": null,
+          "revision": "318e52556f3ebcc58843a16b3f9f5603efada11c",
+          "version": "0.0.5"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
