@@ -13,12 +13,14 @@ public enum VaultCommunicationError: Error {
 
 public final class VaultClient {
   public let vaultAuthority: URL
+  public let logger: Logger?
   private let session = URLSession(configuration: .default)
   public var token: String? = nil
     public var renewalManager: RenewalManager? = nil
 
-  public init(vaultAuthority: URL = URL(string: "http://localhost:8200")!) {
+  public init(vaultAuthority: URL = URL(string: "http://localhost:8200")!, logger: Logger? = nil) {
     self.vaultAuthority = vaultAuthority
+    self.logger = logger
   }
 
   public func status() throws -> (sealed: Bool, healthy: Bool) {
@@ -29,7 +31,7 @@ public final class VaultClient {
 
   /// Configures automatic renewal
   public func enableAutoRenew() throws {
-    self.renewalManager = RenewalManager(vaultClient: self)
+    self.renewalManager = RenewalManager(vaultClient: self, logger: self.logger)
     try self.renewalManager!.beginRenewal()
   }
 }

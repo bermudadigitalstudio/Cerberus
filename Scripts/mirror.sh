@@ -12,11 +12,12 @@ DIR="`dirname \"$0\"`"
 args=()
 i=0
 # Construct volume mount arguments (we don't want to mount the .build folder, among others!)
-for f in "Sources" "Tests" "Package.swift" "Package.pins"
+for f in "Sources" "Tests"
 do
   args[$i]="-v $(pwd)/$f:/code/$f"
   ((++i))
 done
+args[$i]="-v $(pwd)/Package.swift.test:/code/Package.swift"
 
 set -x
 
