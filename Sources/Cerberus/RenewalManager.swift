@@ -24,7 +24,7 @@ public final class RenewalManager {
         self.timeToRenew = timeToRenew
 	let logger = self.logger
         let time = DispatchTime.now() + .seconds(timeToRenew)
-        DispatchQueue.main.asyncAfter(deadline: time) { [weak self] in
+        DispatchQueue.global().asyncAfter(deadline: time) { [weak self] in
 	    logger?.debug("Beginning renewal...")
             guard let strongSelf = self else {
 	      logger?.debug("RenewalManager has deinitialized, aborting.")
