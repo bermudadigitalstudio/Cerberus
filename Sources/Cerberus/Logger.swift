@@ -1,3 +1,3 @@
 public protocol Logger {
-  func debug(_ string: String)
+    func debug(_ string: String)
 }
