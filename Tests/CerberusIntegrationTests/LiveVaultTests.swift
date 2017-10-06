@@ -28,7 +28,6 @@ func tryIt(_ description: String, file: String = #file, line: UInt = #line, clos
   })
 }
 
-
 final class LiveVaultHTTPCerberusIntegrationTests: QuickSpec {
   override func spec() {
     describe("initializing cerberus to an unreachable vault") {

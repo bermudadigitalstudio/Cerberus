@@ -15,8 +15,8 @@ public final class VaultClient {
   public let vaultAuthority: URL
   public let logger: Logger?
   private let session = URLSession(configuration: .default)
-  public var token: String? = nil
-    public var renewalManager: RenewalManager? = nil
+  public var token: String?
+    public var renewalManager: RenewalManager?
 
   public init(vaultAuthority: URL = URL(string: "http://localhost:8200")!, logger: Logger? = nil) {
     self.vaultAuthority = vaultAuthority
@@ -50,9 +50,9 @@ extension VaultClient {
     return ttl
   }
 
-  public func lookupSelfTokenData() throws -> [String:Any] {
+  public func lookupSelfTokenData() throws -> [String: Any] {
     let d = try Auth.Token.lookupSelf(vaultAuthority: vaultAuthority, token: getToken())
-    guard let data = d["data"] as? [String:Any] else {
+    guard let data = d["data"] as? [String: Any] else {
       throw VaultCommunicationError.parseError
     }
     return data
@@ -73,13 +73,13 @@ extension VaultClient {
 
 /// Interface to Generic
 extension VaultClient {
-  public func store(_ secret: [String:String], atPath path: String) throws {
+  public func store(_ secret: [String: String], atPath path: String) throws {
     try Secret.Generic.store(vaultAuthority: vaultAuthority, token: getToken(), secret: secret, path: path)
   }
 
-  public func secret(atPath path: String) throws -> [String:String] {
+  public func secret(atPath path: String) throws -> [String: String] {
     let dict = try Secret.Generic.read(vaultAuthority: vaultAuthority, token: getToken(), path: path)
-    guard let data = dict["data"] as? [String:String] else {
+    guard let data = dict["data"] as? [String: String] else {
       throw VaultCommunicationError.parseError
     }
     return data
@@ -90,7 +90,7 @@ extension VaultClient {
 extension VaultClient {
   public func authenticate(roleID: String, secretID: String? = nil) throws {
     let dict = try Auth.AppRole.login(vaultAuthority: vaultAuthority, roleID: roleID, secretID: secretID)
-    guard let auth = dict["auth"] as? [String:Any], let token = auth["client_token"] as? String else {
+    guard let auth = dict["auth"] as? [String: Any], let token = auth["client_token"] as? String else {
       throw VaultCommunicationError.parseError
     }
     self.token = token
@@ -101,7 +101,7 @@ extension VaultClient {
 extension VaultClient {
     public func databaseCredentials(forRole databaseRole: String) throws -> (username: String, password: String) {
         let dict = try Secret.Database.credentials(vaultAuthority: vaultAuthority, token: getToken(), role: databaseRole)
-        guard let data = dict["data"] as? [String:String],
+        guard let data = dict["data"] as? [String: String],
             let password = data["password"],
             let username = data["username"] else {
             throw VaultCommunicationError.parseError

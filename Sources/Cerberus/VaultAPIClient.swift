@@ -1,9 +1,9 @@
 struct Sys {
-  static func health(vaultAuthority: URL) throws -> [String:Any] {
+  static func health(vaultAuthority: URL) throws -> [String: Any] {
     let health = vaultAuthority.appendingPathComponent("/v1/sys/health")
 
     let r = try fetchJSON(health)
-    guard let dict = r as? [String:Any] else {
+    guard let dict = r as? [String: Any] else {
       throw VaultCommunicationError.parseError
     }
     return dict
@@ -12,9 +12,9 @@ struct Sys {
 
 struct Auth {
   struct Token {
-    static func lookupSelf(vaultAuthority: URL, token: String) throws -> [String:Any] {
+    static func lookupSelf(vaultAuthority: URL, token: String) throws -> [String: Any] {
       let lookupSelf = vaultAuthority.appendingPathComponent("/v1/auth/token/lookup-self")
-      guard let r = try fetchJSON(lookupSelf, token: token) as? [String:Any] else {
+      guard let r = try fetchJSON(lookupSelf, token: token) as? [String: Any] else {
         throw VaultCommunicationError.parseError
       }
       return r
@@ -27,7 +27,7 @@ struct Auth {
     }
   }
   struct AppRole {
-    static func login(vaultAuthority: URL, roleID: String, secretID: String? = nil, backendMountPoint: String = "/auth/approle") throws -> [String:Any] {
+    static func login(vaultAuthority: URL, roleID: String, secretID: String? = nil, backendMountPoint: String = "/auth/approle") throws -> [String: Any] {
       let login = vaultAuthority.appendingPathComponent("/v1").appendingPathComponent(backendMountPoint).appendingPathComponent("/login")
       var payload = [
         "role_id": roleID
@@ -35,7 +35,7 @@ struct Auth {
       if let s = secretID {
         payload["secret_id"] = s
       }
-      guard let json = try postAndReceiveJSON(login, json: payload) as? [String:Any] else {
+      guard let json = try postAndReceiveJSON(login, json: payload) as? [String: Any] else {
         throw VaultCommunicationError.parseError
       }
       return json
@@ -45,22 +45,22 @@ struct Auth {
 
 struct Secret {
     struct Database {
-        static func credentials(vaultAuthority: URL, token: String, role: String, backendMountPoint: String = "/database") throws -> [String:Any] {
+        static func credentials(vaultAuthority: URL, token: String, role: String, backendMountPoint: String = "/database") throws -> [String: Any] {
             let read = vaultAuthority.appendingPathComponent("/v1").appendingPathComponent(backendMountPoint).appendingPathComponent("/creds/").appendingPathComponent(role)
-            guard let dict = try fetchJSON(read, token: token) as? [String:Any] else {
+            guard let dict = try fetchJSON(read, token: token) as? [String: Any] else {
                 throw VaultCommunicationError.parseError
             }
             return dict
         }
     }
   struct Generic {
-    static func store(vaultAuthority: URL, token: String, secret: [String:String], path: String, backendMountPoint: String = "/secret") throws {
+    static func store(vaultAuthority: URL, token: String, secret: [String: String], path: String, backendMountPoint: String = "/secret") throws {
       let store = vaultAuthority.appendingPathComponent("/v1").appendingPathComponent(backendMountPoint).appendingPathComponent(path)
       try postJSON(store, json: secret, token: token)
     }
-    static func read(vaultAuthority: URL, token: String, path: String, backendMountPoint: String = "/secret") throws -> [String:Any] {
+    static func read(vaultAuthority: URL, token: String, path: String, backendMountPoint: String = "/secret") throws -> [String: Any] {
       let read = vaultAuthority.appendingPathComponent("/v1").appendingPathComponent(backendMountPoint).appendingPathComponent(path)
-      guard let dict = try fetchJSON(read, token: token) as? [String:Any] else {
+      guard let dict = try fetchJSON(read, token: token) as? [String: Any] else {
         throw VaultCommunicationError.parseError
       }
       return dict

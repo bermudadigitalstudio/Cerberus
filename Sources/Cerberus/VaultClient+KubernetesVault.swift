@@ -9,7 +9,7 @@ extension VaultClient {
     guard let vaultTokenData = FileManager().contents(atPath: credentialDirectory + "/vault-token") else {
       throw KubernetesVaultError.CredentialsNotFound
     }
-    guard let json = try JSONSerialization.jsonObject(with: vaultTokenData, options: []) as? [String:Any] else {
+    guard let json = try JSONSerialization.jsonObject(with: vaultTokenData, options: []) as? [String: Any] else {
       throw KubernetesVaultError.ParseJSONError
     }
     guard let authority = json["vaultAddr"] as? String, let url = URL(string: authority), let token = json["clientToken"] as? String else {

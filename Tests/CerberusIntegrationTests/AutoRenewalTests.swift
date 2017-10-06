@@ -5,7 +5,7 @@ import Cerberus
 
 final class MockVaultClient: VaultClientTokenRenewable {
     var fakeTokenTTL = 5
-    func lookupSelfTokenData() throws -> [String : Any] {
+    func lookupSelfTokenData() throws -> [String: Any] {
         return [
             "ttl": fakeTokenTTL,
             "renewable": true

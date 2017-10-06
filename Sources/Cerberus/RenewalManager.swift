@@ -1,7 +1,7 @@
 import Dispatch
 
 public protocol VaultClientTokenRenewable: class {
-    func lookupSelfTokenData() throws -> [String:Any]
+    func lookupSelfTokenData() throws -> [String: Any]
     func renewToken() throws
 }
 public final class RenewalManager {
@@ -12,7 +12,7 @@ public final class RenewalManager {
 	self.logger = logger
     }
 
-    public var timeToRenew: Int? = nil
+    public var timeToRenew: Int?
 
     public func beginRenewal() throws {
         let tokenData = try self.vaultClient.lookupSelfTokenData()
