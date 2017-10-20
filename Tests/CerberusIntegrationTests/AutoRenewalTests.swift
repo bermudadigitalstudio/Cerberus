@@ -24,72 +24,72 @@ final class MockVaultClient: VaultClientTokenRenewable {
 
 /// Tests covering Cerberus' automatic token renewal. These tests expect a running vault.
 final class AutoRenewalTests: QuickSpec {
-  override func spec() {
-    describe("the renewal manager") {
-        context("initialized with a mock vault client") {
-            var theRenewalManager: RenewalManager! = nil
-            var aMockVaultClient: MockVaultClient! = nil
-            beforeEach {
-                aMockVaultClient = MockVaultClient()
-                theRenewalManager = RenewalManager(vaultClient: aMockVaultClient)
-                aMockVaultClient.renewalManager = theRenewalManager
-            }
-            it("can autorenew") {
-                expect {
-                    try theRenewalManager.beginRenewal()
-                }.toNot(throwError())
-            }
-            context("with autorenew enabled") {
+    override func spec() {
+        describe("the renewal manager") {
+            context("initialized with a mock vault client") {
+                var theRenewalManager: RenewalManager! = nil
+                var aMockVaultClient: MockVaultClient! = nil
                 beforeEach {
+                    aMockVaultClient = MockVaultClient()
+                    theRenewalManager = RenewalManager(vaultClient: aMockVaultClient)
+                    aMockVaultClient.renewalManager = theRenewalManager
+                }
+                it("can autorenew") {
                     expect {
                         try theRenewalManager.beginRenewal()
-                    }.toNot(throwError())
+                        }.toNot(throwError())
                 }
-                it("calls renew before the time expires") {
-                    expect {
-                        aMockVaultClient.tokenRenewalsCalled
-                    }.toEventually(beGreaterThan(0), timeout: 3)
+                context("with autorenew enabled") {
+                    beforeEach {
+                        expect {
+                            try theRenewalManager.beginRenewal()
+                            }.toNot(throwError())
+                    }
+                    it("calls renew before the time expires") {
+                        expect {
+                            aMockVaultClient.tokenRenewalsCalled
+                            }.toEventually(beGreaterThan(0), timeout: 3)
+                    }
                 }
-            }
 
+            }
         }
-    }
-    describe("automatic token renewal") {
-      var theVaultClient: VaultClient! = nil
-      beforeEach {
-        theVaultClient = VaultClient()
-      }
-      describe("when trying to enable without a token") {
-        beforeEach {
-          theVaultClient.token = nil
-        }
-        it("fails to enable") {
-          expect {
-            try theVaultClient.enableAutoRenew()
-          }.to(throwError())
-        }
-      }
-      describe("when trying to enable with a periodic token") {
-        beforeEach {
-          theVaultClient.token = PeriodicToken
-        }
-        it("enables") {
-          expect {
-            try theVaultClient.enableAutoRenew()
-          }.toNot(throwError())
-        }
-        context("with autorenew enabled") {
+        describe("automatic token renewal") {
+            var theVaultClient: VaultClient! = nil
             beforeEach {
-                expect {
-                    try theVaultClient.enableAutoRenew()
-                }.toNot(throwError())
+                theVaultClient = VaultClient(vaultAuthority: URL(string: "http://localhost:8200")!)
             }
-            tryIt("it schedules a renewal before the expiration") {
-                let ttl = try theVaultClient.tokenTTL()
-                expect(theVaultClient.renewalManager?.timeToRenew).to(beLessThan(ttl))
+            describe("when trying to enable without a token") {
+                beforeEach {
+                    theVaultClient.token = nil
+                }
+                it("fails to enable") {
+                    expect {
+                        try theVaultClient.enableAutoRenew()
+                        }.to(throwError())
+                }
+            }
+            describe("when trying to enable with a periodic token") {
+                beforeEach {
+                    theVaultClient.token = periodicToken
+                }
+                it("enables") {
+                    expect {
+                        try theVaultClient.enableAutoRenew()
+                        }.toNot(throwError())
+                }
+                context("with autorenew enabled") {
+                    beforeEach {
+                        expect {
+                            try theVaultClient.enableAutoRenew()
+                            }.toNot(throwError())
+                    }
+                    tryIt("it schedules a renewal before the expiration") {
+                        let ttl = try theVaultClient.tokenTTL()
+                        expect(theVaultClient.renewalManager?.timeToRenew).to(beLessThan(ttl))
+                    }
+                }
             }
         }
-      }
     }
-  }
 }

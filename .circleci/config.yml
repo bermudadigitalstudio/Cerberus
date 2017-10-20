@@ -1,0 +1,15 @@
+version: 2
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: Run Tests
+          command: ./Scripts/test.sh
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
