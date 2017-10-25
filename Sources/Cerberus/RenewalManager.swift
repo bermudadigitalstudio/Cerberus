@@ -9,7 +9,7 @@ public final class RenewalManager {
     let logger: Logger?
     public init(vaultClient: VaultClientTokenRenewable, logger: Logger? = nil) {
         self.vaultClient = vaultClient
-	self.logger = logger
+        self.logger = logger
     }
 
     public var timeToRenew: Int?
@@ -22,24 +22,24 @@ public final class RenewalManager {
         self.logger?.debug("Looked up self. TTL is \(ttl).")
         let timeToRenew = ttl/2
         self.timeToRenew = timeToRenew
-	let logger = self.logger
+        let logger = self.logger
         let time = DispatchTime.now() + .seconds(timeToRenew)
         DispatchQueue.global().asyncAfter(deadline: time) { [weak self] in
-	    logger?.debug("Beginning renewal...")
+            logger?.debug("Beginning renewal...")
             guard let strongSelf = self else {
-	      logger?.debug("RenewalManager has deinitialized, aborting.")
-	      return
-	    }
+                logger?.debug("RenewalManager has deinitialized, aborting.")
+                return
+            }
             do {
                 strongSelf.timeToRenew = nil
                 logger?.debug("Renewing token...")
                 try strongSelf.vaultClient.renewToken()
-		logger?.debug("Renewed! Scheduling future renewal.")
+                logger?.debug("Renewed! Scheduling future renewal.")
                 try strongSelf.beginRenewal()
             } catch {
                 logger?.debug("Got error: \(error)")
             }
         }
-	logger?.debug("Renewal scheduled for \(time)")
+        logger?.debug("Renewal scheduled for \(time)")
     }
 }

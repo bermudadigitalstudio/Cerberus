@@ -13,9 +13,6 @@ opt_in_rules:
 disabled_rules:
   - syntactic_sugar
 
-variable_name:
-  min_length: 1
-
 line_length: 150
 
 reporter: "emoji"
