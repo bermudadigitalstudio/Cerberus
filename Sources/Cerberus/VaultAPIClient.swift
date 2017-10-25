@@ -1,3 +1,8 @@
+import Foundation
+import Dispatch
+
+private let session = URLSession(configuration: .default)
+
 struct Sys {
     static func health(vaultAuthority: URL) throws -> [String: Any] {
         let health = vaultAuthority.appendingPathComponent("/v1/sys/health")
@@ -81,19 +86,38 @@ struct Secret {
 
 private func fetchJSON(_ url: URL, token: String? = nil) throws -> Any {
     let request = requestForURL(url, token: token)
-    let x: SyncResult<Either<Any, Error>> = synchronize { completion in
-        session.dataTask(with: request, completionHandler: { (data, resp, err) in
-            completion(validateResponseIs2xxWithJSON(data: data, resp: resp, err: err))
-        }).resume()
-    }
-    guard case .success(let result) = x else {
+
+    var error: Error?
+    var json: Any?
+
+    let sema = DispatchSemaphore(value: 0)
+    session.dataTask(with: request, completionHandler: { (data, _, err) in
+        if let err = err {
+            error = err
+        } else if let data = data {
+            do {
+                json = try JSONSerialization.jsonObject(with: data, options: [])
+            } catch let jsonError {
+                error = jsonError
+            }
+        }
+
+        sema.signal()
+    }).resume()
+
+    let timeout = sema.wait(wallTimeout: .now() + .seconds(30))
+
+    switch timeout {
+    case .timedOut:
         throw VaultCommunicationError.timedOut
-    }
-    switch result {
-    case .right(let e):
-        throw VaultCommunicationError.connectionError(e)
-    case .left(let r):
-        return r
+    case.success:
+        if let error = error {
+            throw VaultCommunicationError.connectionError(error)
+        } else if let json = json {
+            return json
+        } else {
+            throw VaultCommunicationError.parseError
+        }
     }
 }
 
@@ -102,19 +126,24 @@ private func postJSON(_ url: URL, json: Any, token: String? = nil) throws {
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     let data = try JSONSerialization.data(withJSONObject: json, options: [])
-    let x: SyncResult<Either<String?, Error>> = synchronize { completion in
-        session.uploadTask(with: request, from: data, completionHandler: { (data, resp, err) in
-            completion(validateResponseIs2xxString(data: data, resp: resp, err: err))
-        }).resume()
-    }
-    guard case .success(let result) = x else {
+
+    var error: Error?
+
+    let sema = DispatchSemaphore(value: 0)
+    session.uploadTask(with: request, from: data, completionHandler: { (_, _, err) in
+        error = err
+        sema.signal()
+    }).resume()
+
+    let timeout = sema.wait(wallTimeout: .now() + .seconds(30))
+
+    switch timeout {
+    case .timedOut:
         throw VaultCommunicationError.timedOut
-    }
-    switch result {
-    case .right(let e):
-        throw VaultCommunicationError.connectionError(e)
-    case .left:
-        return
+    case.success:
+        if let error = error {
+            throw VaultCommunicationError.connectionError(error)
+        }
     }
 }
 
@@ -123,19 +152,38 @@ private func postAndReceiveJSON(_ url: URL, json: Any, token: String? = nil) thr
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     let data = try JSONSerialization.data(withJSONObject: json, options: [])
-    let x: SyncResult<Either<Any, Error>> = synchronize { completion in
-        session.uploadTask(with: request, from: data, completionHandler: { (data, resp, err) in
-            completion(validateResponseIs2xxWithJSON(data: data, resp: resp, err: err))
-        }).resume()
-    }
-    guard case .success(let result) = x else {
+
+    var error: Error?
+    var json: Any?
+
+    let sema = DispatchSemaphore(value: 0)
+    session.uploadTask(with: request, from: data, completionHandler: { (data, _, err) in
+        if let err = err {
+            error = err
+        } else if let data = data {
+            do {
+                json = try JSONSerialization.jsonObject(with: data, options: [])
+            } catch let jsonError {
+                error = jsonError
+            }
+        }
+
+        sema.signal()
+    }).resume()
+
+    let timeout = sema.wait(wallTimeout: .now() + .seconds(30))
+
+    switch timeout {
+    case .timedOut:
         throw VaultCommunicationError.timedOut
-    }
-    switch result {
-    case .right(let e):
-        throw VaultCommunicationError.connectionError(e)
-    case .left(let l):
-        return l
+    case.success:
+        if let error = error {
+            throw VaultCommunicationError.connectionError(error)
+        } else if let json = json {
+            return json
+        } else {
+            throw VaultCommunicationError.parseError
+        }
     }
 }
 
@@ -150,6 +198,3 @@ private func requestForURL(_ url: URL, token: String? = nil) -> URLRequest {
     }
     return request
 }
-private let session = URLSession(configuration: .default)
-import Foundation
-import ServerKit

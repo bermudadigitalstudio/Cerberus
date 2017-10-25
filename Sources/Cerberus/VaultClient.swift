@@ -1,5 +1,4 @@
 import Foundation
-import ServerKit
 import Dispatch
 
 public enum VaultCommunicationError: Error {

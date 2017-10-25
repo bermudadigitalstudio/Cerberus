@@ -14,7 +14,6 @@ eval $(docker exec -i $VAULT_NAME /bin/sh - < "$CONFIGURE_SCRIPT") # Execute out
 
 docker build -t cerberus-test ./
 
-set +e
 docker run --rm --link $VAULT_NAME:localhost -e ROOT_TOKEN -e PERIODIC_TOKEN -e ACCESSIBLE_SECRET_PATH -e ROLE_ID -e SECRET_ID cerberus-test \
   || {  set +x; echo -e "\033[0;31mTests exited with non-zero exit code\033[0m"; tput bel; exit 1; };
 
