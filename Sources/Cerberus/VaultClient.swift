@@ -37,6 +37,7 @@ public final class VaultClient {
 
 /// Inspecting the currently set token
 extension VaultClient {
+
     public func checkToken() throws {
         _ = try lookupSelfTokenData()
     }
@@ -72,6 +73,7 @@ extension VaultClient {
 
 /// Interface to Generic
 extension VaultClient {
+
     public func store(_ secret: [String: String], atPath path: String) throws {
         try Secret.Generic.store(vaultAuthority: vaultAuthority, token: getToken(), secret: secret, path: path)
     }
@@ -87,6 +89,7 @@ extension VaultClient {
 
 /// Interface to AppRole
 extension VaultClient {
+
     public func authenticate(roleID: String, secretID: String? = nil) throws {
         let dict = try Auth.AppRole.login(vaultAuthority: vaultAuthority, roleID: roleID, secretID: secretID)
         guard let auth = dict["auth"] as? [String: Any], let token = auth["client_token"] as? String else {
@@ -98,6 +101,7 @@ extension VaultClient {
 
 /// Interface to Database
 extension VaultClient {
+
     public func databaseCredentials(forRole databaseRole: String) throws -> (username: String, password: String) {
         let dict = try Secret.Database.credentials(vaultAuthority: vaultAuthority, token: getToken(), role: databaseRole)
         guard let data = dict["data"] as? [String: String],
@@ -111,6 +115,7 @@ extension VaultClient {
 }
 
 private extension VaultClient {
+    
     func getToken() throws -> String {
         guard let t = token else { throw VaultCommunicationError.tokenNotSet }
         return t

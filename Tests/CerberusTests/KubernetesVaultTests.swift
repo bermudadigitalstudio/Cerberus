@@ -1,7 +1,7 @@
 import XCTest
 @testable import Cerberus
 
-/// Tests covering the integration of Cerberus with https://github.com/Boostport/kubernetes-vault
+/// Tests covering the integration of Cerberus with https://www.vaultproject.io/api/auth/kubernetes/index.html
 class KubernetesVaultTests: XCTestCase {
 
     static var allTests = [

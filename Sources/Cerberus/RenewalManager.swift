@@ -35,20 +35,25 @@ public final class RenewalManager {
 
         DispatchQueue.global().asyncAfter(deadline: time) { [weak self] in
             logger?.debug("Beginning renewal...")
+
             guard let strongSelf = self else {
                 logger?.debug("RenewalManager has deinitialized, aborting.")
                 return
             }
+
             do {
                 strongSelf.timeToRenew = nil
+                
                 logger?.debug("Renewing token...")
                 try strongSelf.vaultClient.renewToken()
+
                 logger?.debug("Renewed! Scheduling future renewal.")
                 try strongSelf.beginRenewal()
             } catch {
                 logger?.debug("Got error: \(error)")
             }
         }
+
         logger?.debug("Renewal scheduled for \(time)")
     }
 }
