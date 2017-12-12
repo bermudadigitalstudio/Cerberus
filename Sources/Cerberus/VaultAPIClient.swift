@@ -15,6 +15,18 @@ struct Sys {
     }
 }
 
+struct Kubernetes {
+    static func login(vaultAuthority: URL, token: [String: Any], backendMountPoint: String = "/auth/kubernetes") throws -> [String: Any] {
+
+        let login = vaultAuthority.appendingPathComponent("/v1").appendingPathComponent(backendMountPoint).appendingPathComponent("/login")
+        guard let json = try postAndReceiveJSON(login, json: token) as? [String: Any] else {
+            throw VaultCommunicationError.parseError
+        }
+
+        return json
+    }
+}
+
 struct Auth {
 
     struct Token {
