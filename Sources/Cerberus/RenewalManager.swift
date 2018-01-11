@@ -1,4 +1,5 @@
 import Dispatch
+import Log
 
 public protocol VaultClientTokenRenewable: class {
     func lookupSelfTokenData() throws -> [String: Any]
@@ -8,9 +9,9 @@ public final class RenewalManager {
 
     unowned let vaultClient: VaultClientTokenRenewable
 
-    let logger: Logger?
+    let logger: Log?
 
-    public init(vaultClient: VaultClientTokenRenewable, logger: Logger? = nil) {
+    public init(vaultClient: VaultClientTokenRenewable, logger: Log? = nil) {
         self.vaultClient = vaultClient
         self.logger = logger
     }
@@ -43,7 +44,7 @@ public final class RenewalManager {
 
             do {
                 strongSelf.timeToRenew = nil
-                
+
                 logger?.debug("Renewing token...")
                 try strongSelf.vaultClient.renewToken()
 

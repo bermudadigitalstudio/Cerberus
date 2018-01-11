@@ -7,8 +7,11 @@ let package = Package(
     products: [
         .library(name: "Cerberus", targets: ["Cerberus"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/lgaches/Log.git", .upToNextMinor(from: "0.0.1"))
+    ],
     targets:[
-        .target(name:"Cerberus", dependencies: []),
+        .target(name:"Cerberus", dependencies: ["Log"]),
         .testTarget(name: "CerberusTests", dependencies: ["Cerberus"])
     ]
 )

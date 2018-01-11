@@ -1,4 +1,5 @@
 import Foundation
+import Log
 
 enum KubernetesVaultError: Error {
     case credentialsNotFound
@@ -6,8 +7,8 @@ enum KubernetesVaultError: Error {
 }
 
 extension VaultClient {
-    public static func KubernetesLogin(credentialPath: String = "/var/run/secrets/kubernetes.io/serviceaccount/token",
-                                 vaultAddress: URL, role: String, logger: Logger? = nil) throws -> VaultClient {
+    public static func kubernetesLogin(credentialPath: String = "/var/run/secrets/kubernetes.io/serviceaccount/token",
+                                       vaultAddress: URL, role: String, logger: Log? = nil) throws -> VaultClient {
 
         guard let jwtTokenData = FileManager().contents(atPath: credentialPath), let jwt = String(data: jwtTokenData, encoding: .utf8) else {
             throw KubernetesVaultError.credentialsNotFound

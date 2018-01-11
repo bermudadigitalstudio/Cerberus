@@ -10,13 +10,13 @@ class KubernetesVaultTests: XCTestCase {
 
     func testInitK8sVaultEnv() throws {
 
-        guard let url = URL(string:"http://localhost:8200") else {
-            XCTFail("Wrong url")
-            return
-        }
+//        guard let url = URL(string:"http://localhost:8200") else {
+//            XCTFail("Wrong url")
+//            return
+//        }
 
         // Integration too complex
-//        let vaultClient = try VaultClient.KubernetesLogin(credentialPath: "/tmp/k8s-test/token", vaultAddress: url, role: "MyRole")
+//        let vaultClient = try VaultClient.kubernetesLogin(credentialPath: "/tmp/k8s-test/token", vaultAddress: url, role: "MyRole")
 //
 //        XCTAssertNotNil(vaultClient.token)
     }

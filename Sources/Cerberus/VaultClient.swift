@@ -1,5 +1,6 @@
 import Foundation
 import Dispatch
+import Log
 
 public enum VaultCommunicationError: Error {
     case connectionError(Error)
@@ -12,12 +13,12 @@ public enum VaultCommunicationError: Error {
 
 public final class VaultClient {
     public let vaultAuthority: URL
-    public let logger: Logger?
+    public let logger: Log?
     private let session = URLSession(configuration: .default)
     public var token: String?
     public var renewalManager: RenewalManager?
 
-    public init(vaultAuthority: URL, logger: Logger? = nil) {
+    public init(vaultAuthority: URL, logger: Log? = nil) {
         self.vaultAuthority = vaultAuthority
         self.logger = logger
     }
@@ -115,7 +116,7 @@ extension VaultClient {
 }
 
 private extension VaultClient {
-    
+
     func getToken() throws -> String {
         guard let t = token else { throw VaultCommunicationError.tokenNotSet }
         return t
