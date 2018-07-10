@@ -11,7 +11,7 @@ public enum VaultCommunicationError: Error {
     case nonRenewableToken
 }
 
-public final class VaultClient {
+public class VaultClient {
     public let vaultAuthority: URL
     public let logger: Log?
     private let session = URLSession(configuration: .default)
